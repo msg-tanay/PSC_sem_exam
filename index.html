@@ -47,41 +47,15 @@
         <h2>Welcome to LMS</h2>
         <p>Please select your role to login:</p>
         <div id="error-msg" class="error-msg"></div>
-        <form id="login-form">
-            <input type="text" id="username" placeholder="Username" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <select id="role" required>
+        <form id="login-form" action="/login" method="POST">
+            <input type="text" id="username" name="username" placeholder="Username" required>
+            <input type="password" id="password" name="password" placeholder="Password" required>
+            <select id="role" name="role" required>
                 <option value="student">Student</option>
                 <option value="teacher">Teacher</option>
             </select>
             <button type="submit">Login</button>
         </form>
     </div>
-    <script>
-        document.getElementById('login-form').addEventListener('submit', function(event) {
-            event.preventDefault();
-
-            var username = document.getElementById('username').value;
-            var password = document.getElementById('password').value;
-            var role = document.getElementById('role').value;
-
-            var xhr = new XMLHttpRequest();
-            xhr.open('POST', '/login', true);
-            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-
-            xhr.onload = function() {
-                if (this.status == 200) {
-                    var response = JSON.parse(this.responseText);
-                    if (response.error) {
-                        document.getElementById('error-msg').textContent = response.error;
-                    } else {
-                        window.location.href = '/dashboard';
-                    }
-                }
-            };
-
-            xhr.send('username=' + encodeURIComponent(username) + '&password=' + encodeURIComponent(password) + '&role=' + encodeURIComponent(role));
-        });
-    </script>
 </body>
 </html>

@@ -9,3 +9,16 @@ INSERT INTO users (username, password, role) VALUES ('student1', 'student_passwo
 
 -- Insert a teacher
 INSERT INTO users (username, password, role) VALUES ('teacher1', 'teacher_password', 'teacher');
+
+CREATE TABLE courses (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    teacher_id INTEGER REFERENCES users(id)
+);
+
+CREATE TABLE course_enrollments (
+    id SERIAL PRIMARY KEY,
+    course_id INTEGER REFERENCES courses(id),
+    student_id INTEGER REFERENCES users(id)
+);
