@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 300px;
+            margin: 100px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .course {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        input, select, button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Welcome, Teacher!</h2>
+        <form id="create-course-form" action="/create" method="POST">
+            <input type="text" id="course-name" name="course-name" placeholder="Course Name">
+            <textarea id="course-description" name="course-description" placeholder="Course Description"></textarea>
+            <button type="submit">Create Course</button>
+        </form>
+        <div id="course-list">
+            <!-- Courses will be dynamically added here -->
+        </div>
+    </div>
+    <!-- <script>
+        window.onload = function() {
+            // Fetch the list of courses the teacher has created
+            fetch('/get_courses')
+                .then(response => response.json())
+                .then(courses => {
+                    // Get the course list container
+                    const courseList = document.getElementById('course-list');
+
+                    // Add each course to the course list
+                    courses.forEach(course => {
+                        const courseDiv = document.createElement('div');
+                        courseDiv.className = 'course';
+                        courseDiv.textContent = course.name;
+                        courseList.appendChild(courseDiv);
+                    });
+                });
+
+            // Add an event listener to the create course form
+            document.getElementById('create-course-form').addEventListener('submit', function(event) {
+                // Prevent the form from being submitted normally
+                event.preventDefault();
+
+                // Get the course name and description
+                const name = document.getElementById('course-name').value;
+                const description = document.getElementById('course-description').value;
+
+                // Send a request to create the course
+                fetch('/create_course', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name: name, description: description })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert(data.error);
+                    } else {
+                        // Add the new course to the course list
+                        const courseDiv = document.createElement('div');
+                        courseDiv.className = 'course';
+                        courseDiv.textContent = name;
+                        document.getElementById('course-list').appendChild(courseDiv);
+
+                        // Clear the form fields
+                        document.getElementById('course-name').value = '';
+                        document.getElementById('course-description').value = '';
+                    }
+                });
+            });
+        };
+    </script> -->
+</body>
+</html>

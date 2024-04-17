@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            width: 300px;
+            margin: 100px auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        .course {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .course-name {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+
+        .enroll-btn {
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Welcome, Student!</h2>
+        <div id="course-list">
+            <!-- Courses will be dynamically added here -->
+        </div>
+    </div>
+    <script>
+        window.onload = function() {
+            // Fetch the list of courses the student is enrolled in
+            fetch('/get_courses')
+                .then(response => response.json())
+                .then(courses => {
+                    // Get the course list container
+                    const courseList = document.getElementById('course-list');
+
+                    // Add each course to the course list
+                    courses.forEach(course => {
+                        const courseDiv = document.createElement('div');
+                        courseDiv.className = 'course';
+                        const courseName = document.createElement('span');
+                        courseName.className = 'course-name';
+                        courseName.textContent = course.name;
+                        const enrollBtn = document.createElement('button');
+                        enrollBtn.className = 'enroll-btn';
+                        enrollBtn.textContent = 'Enroll';
+                        enrollBtn.addEventListener('click', function() {
+                            // Redirect to enroll page
+                            window.location.href = `/enroll?course_id=${course.id}`;
+                        });
+                        courseDiv.appendChild(courseName);
+                        courseDiv.appendChild(enrollBtn);
+                        courseList.appendChild(courseDiv);
+                    });
+                });
+        };
+    </script>
+</body>
+</html>
