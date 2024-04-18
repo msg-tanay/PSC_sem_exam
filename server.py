@@ -3,6 +3,7 @@ import json
 # from passlib.context import CryptContext
 import psycopg2
 from urllib.parse import unquote
+from urllib.parse import urlparse, parse_qs
 
 # Database connection details
 db_host = 'localhost'
@@ -107,8 +108,19 @@ def enroll_in_course(body):
     # Parse form data
     form_data = parse_form_data(body)
 
-    # Extract form fields
+    # Extract course_id from the form data
     course_id = form_data.get('course_id')
+
+    # Ensure that course_id is provided
+    if not course_id:
+        return response_400('Course ID is required')
+
+    # Ensure that the course_id is a valid integer
+    try:
+        course_id = int(course_id)
+    except ValueError:
+        return response_400('Invalid course ID')
+
     student_id = current_user_id
 
     try:
@@ -127,6 +139,7 @@ def enroll_in_course(body):
         return response_200('Enrolled in course successfully')
     except psycopg2.Error as e:
         return response_500(str(e))
+
 
 def drop_course(body):
     # Parse form data
@@ -195,36 +208,79 @@ def login_user(data):
     
 def get_courses():
     try:
-        # Connect to the database
         conn = psycopg2.connect(host=db_host, dbname=db_name, user=db_user, password=db_password, port=5433)
         cursor = conn.cursor()
 
-        # Execute the query to fetch courses
+        # Fetch all courses
         cursor.execute("SELECT * FROM courses")
-
-        # Fetch all rows from the result set
         courses = cursor.fetchall()
 
-        # Close the cursor and connection
+        # Fetch enrolled courses for the current user
+        cursor.execute("SELECT c.id, c.name, c.description FROM courses c INNER JOIN course_enrollments ce ON c.id = ce.course_id WHERE ce.student_id = %s", (current_user_id,))
+        enrolled_courses = cursor.fetchall()
+
         cursor.close()
         conn.close()
 
-        # Convert the courses to a list of dictionaries
+        # Convert courses to a list of dictionaries
         course_list = []
         for course in courses:
             course_dict = {
                 'id': course[0],
                 'name': course[1],
-                'description': course[2]
+                'description': course[2],
+                'enrolled': False  # Add a flag to indicate if the course is enrolled
             }
             course_list.append(course_dict)
 
-        # Return the list of courses as a JSON response
+        # Mark enrolled courses
+        for enrolled_course in enrolled_courses:
+            for course in course_list:
+                if enrolled_course[0] == course['id']:
+                    course['enrolled'] = True
+
         return response_200(json.dumps(course_list))
     except psycopg2.Error as e:
         return response_500(str(e))
 
-    
+def read_forum_page():
+    with open("forum.html", "r") as file:
+        return file.read()
+
+def post_thread(body):
+    try:
+        # Parse form data
+        form_data = parse_form_data(body)
+
+        # Extract form fields
+        course_id = form_data.get('course')
+        title = form_data.get('title')
+        post = form_data.get('post')
+
+        # Ensure that all required fields are provided
+        if not (course_id and title and post):
+            return response_400('Missing required fields')
+
+        # Connect to the database
+        conn = psycopg2.connect(host=db_host, dbname=db_name, user=db_user, password=db_password, port=5433)
+        cursor = conn.cursor()
+
+        # Insert the new thread into the database
+        cursor.execute("INSERT INTO discussion_threads (course_id, title, post) VALUES (%s, %s, %s)", (course_id, title, post))
+
+        # Commit the transaction and close the database connection
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        return response_200('Thread posted successfully')
+    except psycopg2.Error as e:
+        return response_500(str(e))
+    except Exception as e:
+        return response_500(str(e))
+
+
+
 def handle_request(request):
     method, path, headers, body = parse_request(request)
     if method == 'GET':
@@ -234,6 +290,8 @@ def handle_request(request):
             return response_200(login_user())
         elif path == '/get_courses':
             return get_courses()
+        elif path == '/forum':
+            return response_200(read_forum_page())
         else:
             return response_404()
     elif method == 'POST':
@@ -241,10 +299,12 @@ def handle_request(request):
             return login_user(body)
         if path == '/create':
             return create_course(body)
-        elif path == '/enroll':
+        elif path.startswith('/enroll'):
             return enroll_in_course(body)
         elif path == '/drop_course':
             return drop_course(body)
+        elif path == '/post_thread':    
+            return post_thread(body)
         else:
             return response_404()
     else:
